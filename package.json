@@ -1,0 +1,17 @@
+{
+  "name": "level-indexing",
+  "version": "0.0.1",
+  "repository": "https://github.com/stagas/level-indexing",
+  "description": "level indexing and finding",
+  "keywords": ["level", "levelup", "leveldb", "index", "indexes", "indexing", "find", "finding"],
+  "author": "stagas <gstagas@gmail.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "should": "~2.1.0",
+    "level": "~0.18.0",
+    "sublevel": "~0.3.1"
+  },
+  "engines": { "node": "*" }
+}
