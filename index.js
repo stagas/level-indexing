@@ -18,6 +18,7 @@
  */
 
 module.exports = function(db){
+  db.indexdb = db.sublevel('index', { valueEncoding: 'utf8' });
   db.indexes = db.indexes || [];
   db.index = index;
   db.getBy = db.by = by;
@@ -35,7 +36,7 @@ module.exports = function(db){
 
 function index(name){
   var self = this;
-  var sub = this.sublevel(name, { valueEncoding: 'utf8' });
+  var sub = this.indexdb.sublevel(name);
   var put = this.put;
   var del = this.del;
 
@@ -90,8 +91,8 @@ function index(name){
 
 function by(index, key, options, fn){
   var self = this;
-  var sub = this.sublevel(index, { valueEncoding: 'utf8' });
-  fn = fn || options;
+  var sub = this.indexdb.sublevel(index, { valueEncoding: 'utf8' });
+  var args = normalize(options, fn);
 
   if ('object' == typeof key) {
     if (!(index in key)) return fn(error({
