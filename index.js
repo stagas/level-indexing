@@ -50,14 +50,16 @@ function index(name){
   };
 
   this.put = function(key, value, options, fn){
+    var args = normalize(options, fn);
+
     if (!(name in value)) return done();
 
     var prop = value[name];
     sub.put(prop, key, done);
 
     function done(err){
-      if (err) return (fn || options)(err);
-      put.call(self, key, value, options, fn);
+      if (err) return args.fn(err);
+      put.call(self, key, value, args.options, args.fn);
     }
   };
 
@@ -104,13 +106,13 @@ function by(index, key, options, fn){
 
   sub.get(key, function(err, value){
     if (err) {
-      if ('NotFoundError' == err.type) return fn(error({
+      if ('NotFoundError' == err.type) return args.fn(error({
         message: 'Key not found in the index.',
         type: 'NotIndexedError'
       }));
-      return fn(err);
+      return args.fn(err);
     }
-    self.get(value, options, fn);
+    self.get(value, args.options, args.fn);
   });
 }
 
@@ -125,16 +127,13 @@ function by(index, key, options, fn){
 
 function find(key, options, fn){
   var self = this;
-  if ('function' == typeof options) {
-    fn = options;
-    options = {};
-  }
+  var args = normalize(options, fn);
 
   // search for actual key first
   if (!('object' == typeof key)) {
-    this.get(key, options, function(err, value){
+    this.get(key, args.options, function(err, value){
       if (err && err.type == 'NotFoundError') return next(0);
-      fn(err, value);
+      args.fn(err, value);
     });
   }
   else next(0);
@@ -142,18 +141,40 @@ function find(key, options, fn){
   function next(i, err){
     var index = self.indexes[i];
 
-    if (err && err.type != 'NotIndexedError') return fn(err);
+    if (err && err.type != 'NotIndexedError') return args.fn(err);
 
-    if (!index) return fn(error({
+    if (!index) return args.fn(error({
       message: 'Key not found in any of the indexes.',
       type: 'NotIndexedError'
     }));
 
-    self.by(index, key, function(err, value){
+    self.by(index, key, args.options, function(err, value){
       if (err) return next(i + 1, err);
-      fn(null, value);
+      args.fn(null, value);
     });
   }
+}
+
+/**
+ * Normalize `options` and `fn` arguments.
+ *
+ * @param {Object} [options]
+ * @param {Function} fn
+ * @return {Object}
+ * @api private
+ */
+
+function normalize(options, fn){
+  var args = {};
+  if ('function' == typeof options){
+    args.options = this.options;
+    args.fn = options;
+  }
+  else {
+    args.options = options;
+    args.fn = fn;
+  }
+  return args;
 }
 
 /**
