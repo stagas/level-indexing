@@ -21,6 +21,7 @@ module.exports = function(db){
   db.indexdb = db.sublevel('index', { valueEncoding: 'utf8' });
   db.indexes = db.indexes || [];
   db.index = index;
+  db.unique = unique;
   db.getBy = db.by = by;
   db.find = find;
   return db;
@@ -74,6 +75,38 @@ function index(name){
       function done(err){
         if (err) return fn(err);
         del.call(self, key, fn);
+      }
+    });
+  };
+
+  return this;
+}
+
+/**
+ * Creates a unique index property `name`.
+ *
+ * @param {String} name
+ * @return {Sub}
+ * @api public
+ */
+
+function unique(name){
+  this.index(name);
+
+  var self = this;
+  var put = this.put;
+
+  this.put = function(key, value, options, fn){
+    var args = normalize(options, fn);
+    self.by(name, value, args.options, function(err){
+      if (err && err.type == 'NotIndexedError') {
+        put.call(self, key, value, args.options, args.fn);
+      }
+      else {
+        args.fn(error({
+          message: 'Key already indexed and is unique.',
+          type: 'AlreadyExistsError'
+        }));
       }
     });
   };

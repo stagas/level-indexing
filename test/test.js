@@ -28,8 +28,10 @@ describe("indexing(db)", function(){
 
   it("should patch db", function(){
     var indexed = indexing(db);
-    indexed.should.have.property('index');
+    indexed.should.have.property('indexdb');
     indexed.should.have.property('indexes');
+    indexed.should.have.property('index');
+    indexed.should.have.property('unique');
     indexed.should.have.property('getBy');
     indexed.should.have.property('by');
     indexed.should.have.property('find');
@@ -49,7 +51,7 @@ describe("index(name)", function(){
     var indexed = indexing(db);
     indexed.index('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/username/foobar', function(err, value){
+      top.get('/index/username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         done();
@@ -61,12 +63,12 @@ describe("index(name)", function(){
     var indexed = indexing(db);
     indexed.index('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/username/foobar', function(err, value){
+      top.get('/index/username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         indexed.del(1, function(err){
           assert(null == err);
-          top.get('/username/foobar', function(err, value){
+          top.get('/index/username/foobar', function(err, value){
             assert(err);
             assert('NotFoundError' == err.type);
             assert(null == value);
@@ -93,13 +95,154 @@ describe("index(name)", function(){
       username: 'foobar',
       email: 'foo@bar'
     }, function(err){
-      top.get('/username/foobar', function(err, value){
+      top.get('/index/username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
-        top.get('/email/foo@bar', function(err, value){
+        top.get('/index/email/foo@bar', function(err, value){
           assert(null == err);
           value.should.equal('1');
           done();
+        });
+      });
+    });
+  })
+
+})
+
+describe("unique(name)", function(){
+
+  it("should create a unique index", function(){
+    var indexed = indexing(db);
+    indexed.unique('username');
+    indexed.indexes.should.contain('username');
+  })
+
+  it("should patch put not overwrite if it exists", function(done){
+    var indexed = indexing(db);
+    indexed.unique('username');
+    indexed.put(1, { username: 'foobar' }, function(err){
+      top.get('/index/username/foobar', function(err, value){
+        assert(null == err);
+        value.should.equal('1');
+        indexed.put(2, { username: 'foobar' }, function(err){
+          assert(err);
+          assert('AlreadyExistsError' == err.type);
+          top.get('/index/username/foobar', function(err, value){
+            assert(null == err);
+            value.should.equal('1');
+            done();
+          });
+        });
+      });
+    });
+  })
+
+  it("should patch del to also remove the index", function(done){
+    var indexed = indexing(db);
+    indexed.unique('username');
+    indexed.put(1, { username: 'foobar' }, function(err){
+      top.get('/index/username/foobar', function(err, value){
+        assert(null == err);
+        value.should.equal('1');
+        indexed.del(1, function(err){
+          assert(null == err);
+          top.get('/index/username/foobar', function(err, value){
+            assert(err);
+            assert('NotFoundError' == err.type);
+            assert(null == value);
+            indexed.get(1, function(err, value){
+              assert(err);
+              assert('NotFoundError' == err.type);
+              assert(null == value);
+              done();
+            });
+          });
+        });
+      });
+    });
+  })
+
+  it("should work in combination with normal indexes", function(done){
+    var indexed = indexing(db);
+    indexed
+    .unique('username')
+    .index('email');
+    indexed.indexes.should.contain('username');
+    indexed.indexes.should.contain('email');
+    indexed.put(1, {
+      username: 'foobar',
+      email: 'foo@bar'
+    }, function(err){
+      top.get('/index/username/foobar', function(err, value){
+        assert(null == err);
+        value.should.equal('1');
+        top.get('/index/email/foo@bar', function(err, value){
+          assert(null == err);
+          value.should.equal('1');
+          indexed.put(2, {
+            username: 'foobar',
+            email: 'bar@foo'
+          }, function(err){
+            assert(err);
+            assert('AlreadyExistsError' == err.type);
+            indexed.put(2, {
+              username: 'barfoo',
+              email: 'bar@foo'
+            }, function(err){
+              assert(null == err);
+              indexed.get(2, function(err, value){
+                assert(null == err);
+                value.should.eql({
+                  username: 'barfoo',
+                  email: 'bar@foo'
+                });
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  })
+
+  it("should work in combination with normal indexes when called last", function(done){
+    var indexed = indexing(db);
+    indexed
+    .index('email')
+    .unique('username');
+    indexed.indexes.should.contain('username');
+    indexed.indexes.should.contain('email');
+    indexed.put(1, {
+      username: 'foobar',
+      email: 'foo@bar'
+    }, function(err){
+      top.get('/index/username/foobar', function(err, value){
+        assert(null == err);
+        value.should.equal('1');
+        top.get('/index/email/foo@bar', function(err, value){
+          assert(null == err);
+          value.should.equal('1');
+          indexed.put(2, {
+            username: 'foobar',
+            email: 'bar@foo'
+          }, function(err){
+            assert(err);
+            assert('AlreadyExistsError' == err.type);
+            indexed.put(2, {
+              username: 'barfoo',
+              email: 'bar@foo'
+            }, function(err){
+              assert(null == err);
+              indexed.get(2, function(err, value){
+                assert(null == err);
+                value.should.eql({
+                  username: 'barfoo',
+                  email: 'bar@foo'
+                });
+                done();
+              });
+            });
+          });
         });
       });
     });
