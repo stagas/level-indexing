@@ -264,6 +264,19 @@ describe("by(index, key, fn)", function(){
     });
   })
 
+  it("should callback the key reference", function(done){
+    var indexed = indexing(db);
+    indexed.index('username');
+    indexed.put(1, { username: 'foobar'}, function(err){
+      indexed.by('username', 'foobar', function(err, value, key){
+        assert(null == err);
+        value.should.eql({ username: 'foobar' });
+        key.should.equal('1');
+        done();
+      });
+    });
+  })
+
   it("should get value by index when passed an object", function(done){
     var indexed = indexing(db);
     indexed.index('username');
@@ -344,6 +357,27 @@ describe("find(key, fn)", function(){
           username: 'foobar',
           email: 'foo@bar'
         });
+        done();
+      });
+    });
+  })
+
+  it("should callback the key reference", function(done){
+    var indexed = indexing(db);
+    indexed
+    .index('username')
+    .index('email');
+    indexed.put(1, {
+      username: 'foobar',
+      email: 'foo@bar'
+    }, function(err){
+      indexed.find('foobar', function(err, value, key){
+        assert(null == err);
+        value.should.eql({
+          username: 'foobar',
+          email: 'foo@bar'
+        });
+        key.should.equal('1');
         done();
       });
     });

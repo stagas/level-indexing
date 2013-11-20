@@ -145,7 +145,9 @@ function by(index, key, options, fn){
       }));
       return args.fn(err);
     }
-    self.get(value, args.options, args.fn);
+    self.get(value, args.options, function(err, data){
+      args.fn(err, data, value);
+    });
   });
 }
 
@@ -181,9 +183,9 @@ function find(key, options, fn){
       type: 'NotIndexedError'
     }));
 
-    self.by(index, key, args.options, function(err, value){
+    self.by(index, key, args.options, function(err, value, key){
       if (err) return next(i + 1, err);
-      args.fn(null, value);
+      args.fn(null, value, key);
     });
   }
 }
