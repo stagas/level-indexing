@@ -51,7 +51,7 @@ describe("index(name)", function(){
     var indexed = indexing(db);
     indexed.index('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         done();
@@ -63,12 +63,12 @@ describe("index(name)", function(){
     var indexed = indexing(db);
     indexed.index('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         indexed.del(1, function(err){
           assert(null == err);
-          top.get('/index/username/foobar', function(err, value){
+          top.get('\x00/\x00index/\x00username/foobar', function(err, value){
             assert(err);
             assert('NotFoundError' == err.type);
             assert(null == value);
@@ -95,10 +95,10 @@ describe("index(name)", function(){
       username: 'foobar',
       email: 'foo@bar'
     }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
-        top.get('/index/email/foo@bar', function(err, value){
+        top.get('\x00/\x00index/\x00email/foo@bar', function(err, value){
           assert(null == err);
           value.should.equal('1');
           done();
@@ -121,13 +121,13 @@ describe("unique(name)", function(){
     var indexed = indexing(db);
     indexed.unique('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         indexed.put(2, { username: 'foobar' }, function(err){
           assert(err);
           assert('AlreadyExistsError' == err.type);
-          top.get('/index/username/foobar', function(err, value){
+          top.get('\x00/\x00index/\x00username/foobar', function(err, value){
             assert(null == err);
             value.should.equal('1');
             done();
@@ -141,12 +141,12 @@ describe("unique(name)", function(){
     var indexed = indexing(db);
     indexed.unique('username');
     indexed.put(1, { username: 'foobar' }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
         indexed.del(1, function(err){
           assert(null == err);
-          top.get('/index/username/foobar', function(err, value){
+          top.get('\x00/\x00index/\x00username/foobar', function(err, value){
             assert(err);
             assert('NotFoundError' == err.type);
             assert(null == value);
@@ -173,10 +173,10 @@ describe("unique(name)", function(){
       username: 'foobar',
       email: 'foo@bar'
     }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
-        top.get('/index/email/foo@bar', function(err, value){
+        top.get('\x00/\x00index/\x00email/foo@bar', function(err, value){
           assert(null == err);
           value.should.equal('1');
           indexed.put(2, {
@@ -216,10 +216,10 @@ describe("unique(name)", function(){
       username: 'foobar',
       email: 'foo@bar'
     }, function(err){
-      top.get('/index/username/foobar', function(err, value){
+      top.get('\x00/\x00index/\x00username/foobar', function(err, value){
         assert(null == err);
         value.should.equal('1');
-        top.get('/index/email/foo@bar', function(err, value){
+        top.get('\x00/\x00index/\x00email/foo@bar', function(err, value){
           assert(null == err);
           value.should.equal('1');
           indexed.put(2, {

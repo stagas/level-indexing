@@ -11,7 +11,7 @@
   "devDependencies": {
     "should": "~2.1.0",
     "level": "~0.18.0",
-    "sublevel": "~0.3.1"
+    "sublevel": "~1.0.0"
   },
   "engines": { "node": "*" }
 }
