@@ -98,8 +98,9 @@ function unique(name){
 
   this.put = function(key, value, options, fn){
     var args = normalize(options, fn);
-    self.by(name, value, args.options, function(err){
-      if (err && err.type == 'NotIndexedError') {
+    self.by(name, value, args.options, function(err, data, _key){
+      if (err && err.type == 'NotIndexedError'
+      || _key == key) {
         put.call(self, key, value, args.options, args.fn);
       }
       else {
