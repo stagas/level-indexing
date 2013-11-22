@@ -1,4 +1,10 @@
 
+0.3.0 / 21-11-2013
+==================
+
+- Allow items with unique indexes to be updated
+for same key.
+
 0.2.2 / 21-11-2013
 ==================
 
